@@ -2,23 +2,22 @@ defmodule DobraNoc.PipelineTest do
   use ExUnit.Case
 
   alias DobraNoc.Pipeline
-  alias Membrane.Time
 
   test "store 5s recording" do
+    File.mkdir_p!("out")
     File.rm("out/out.flac")
     {:ok, pid} = Pipeline.start_link()
     Pipeline.play(pid)
     Process.sleep(8000)
 
-    filename = "out/cut_#{Time.vm_time() |> Time.to_iso8601()}.flac"
+    filename = "out/cut_#{Membrane.Time.vm_time() |> Membrane.Time.to_iso8601()}"
 
-    send(
-      pid,
-      {:cut, {Time.os_time() - Time.second(6), Time.os_time() - Time.second(1), filename}}
-    )
+    now = :os.system_time(:seconds)
+
+    send(pid, {:save_rec, %{from: now - 6, to: now - 1, location: filename}})
 
     Process.sleep(3000)
 
-    File.cp!(filename, "out/out.flac")
+    File.cp!(filename <> ".flac", "out/out.flac")
   end
 end

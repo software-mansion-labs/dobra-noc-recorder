@@ -47,14 +47,14 @@ defmodule DobraNoc.RecordingBuffer do
   end
 
   @impl true
-  def handle_other({:cut, {from, to, location}}, _ctx, state) do
+  def handle_other({:save_rec, args}, _ctx, state) do
     frames =
       state.q
-      |> Enum.drop_while(fn {time, _frame} -> time < from end)
-      |> Enum.take_while(fn {time, _frame} -> time <= to end)
+      |> Enum.drop_while(fn {time, _frame} -> time < args.from end)
+      |> Enum.take_while(fn {time, _frame} -> time <= args.to end)
       |> Enum.map(fn {_time, frame} -> frame end)
 
-    :ok = File.write(location, state.headers ++ frames, [:binary, :write])
+    :ok = File.write(args.location, state.headers ++ frames, [:binary, :write])
     {:ok, state}
   end
 end
